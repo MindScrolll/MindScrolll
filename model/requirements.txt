@@ -2,3 +2,7 @@ tensorflow
 pandas
 scikit-learn
 numpy
+datasets
+matplotlib
+seaborn
+zemberek-python
