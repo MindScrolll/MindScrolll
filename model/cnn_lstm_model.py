@@ -1,18 +1,8 @@
-"""
-MindScroll: Hibrit CNN-LSTM Duygu Analizi Modeli
-Kaptan / AI Uzmanı katkısı - İP1: Edge AI mimarisinin netleştirilmesi
-ve model mimarisi tasarımı.
 
-Metin içerisindeki yerel özellikler CNN ile, zamansal/bağlamsal dizilim
-LSTM ile analiz edilir. Çıktı katmanı, rapordaki 5 sınıflı duygu
-etiketlemesine (öfke, korku, mutluluk, üzüntü, şaşkınlık) uygun olacak
-şekilde softmax olarak tasarlanmıştır (önceki sürümdeki ikili sigmoid
-çıktı, veri setiyle [anilguven/turkish_tweet_emotion_dataset] uyumsuzdu).
-"""
 
 import tensorflow as tf
 
-# Rapor Tablo 2 / Bölüm 3.2 ile birebir uyumlu sabitler
+
 NUM_CLASSES = 5  # öfke, korku, mutluluk, üzüntü, şaşkınlık
 VOCAB_SIZE = 10000
 MAX_LENGTH = 100
@@ -24,15 +14,7 @@ def build_cnn_lstm_model(
     max_length: int = MAX_LENGTH,
     num_classes: int = NUM_CLASSES,
 ) -> tf.keras.Model:
-    """
-    MindScroll: Hibrit CNN-LSTM Duygu Analizi Modeli
-
-    - Embedding: kelime gömme
-    - Conv1D + MaxPooling1D: yerel öznitelik / n-gram çıkarımı (CNN katmanı)
-    - Bidirectional LSTM: ardışık/bağlamsal duygu dizilimini analiz eder
-    - Dropout: aşırı öğrenmeyi (overfitting) önlemek için
-    - Dense(num_classes, softmax): çok sınıflı duygu çıktısı
-    """
+   
     model = tf.keras.Sequential([
         tf.keras.layers.Embedding(
             input_dim=vocab_size, output_dim=EMBEDDING_DIM, input_length=max_length
@@ -64,14 +46,21 @@ def build_cnn_lstm_model(
 
 
 def convert_to_tflite(keras_model: tf.keras.Model, output_path: str = "mindscroll_model.tflite") -> str:
-    """Eğitilen modeli Edge AI (cihaz üzerinde) çalışacak TFLite formatına dönüştürür."""
+    
     converter = tf.lite.TFLiteConverter.from_keras_model(keras_model)
     converter.optimizations = [tf.lite.Optimize.DEFAULT]  # boyut/nicemleme optimizasyonu
+
+    # LSTM katmanının TFLite'a düzgün aktarılabilmesi için gerekli ayarlar
+    converter.target_spec.supported_ops = [
+        tf.lite.OpsSet.TFLITE_BUILTINS,   # standart, hafif TFLite operasyonları
+        tf.lite.OpsSet.SELECT_TF_OPS,     # LSTM gibi karmaşık katmanlar için TF operasyonları
+    ]
+    converter._experimental_lower_tensor_list_ops = False
+
     tflite_model = converter.convert()
     with open(output_path, "wb") as f:
         f.write(tflite_model)
     return output_path
-
 
 if __name__ == "__main__":
     print("CNN-LSTM hibrit model (5 sınıflı, Edge AI mimarisi) oluşturuldu.")

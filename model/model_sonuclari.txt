@@ -1,0 +1,8 @@
+MindScroll Model Eğitim Sonuçları
+========================================
+Kullanılan veri: anilguven/turkish_tweet_emotion_dataset (4000 tweet, 5 sınıf, dengeli)
+Ön işleme: Zemberek ile kelime köklendirme (sözlük boyutu: 4000 satır işlendi)
+K-Fold ortalama accuracy: 0.9678 (+-0.0075)
+Test Accuracy: 0.9637
+Test F1 Score (weighted): 0.9637
+TFLite model boyutu: 735.47 KB
